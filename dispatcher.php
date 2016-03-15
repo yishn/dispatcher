@@ -104,3 +104,19 @@ function dispatch() {
     list($route, $args) = $match;
     foreach ($route[2] as $f) $f($args);
 }
+
+function redirect($location, $code = 302) {
+    http_response_code($code);
+    header('Location: ' . $location);
+    exit();
+}
+
+function render($__PATH, $__VARS) {
+    extract($__VARS, EXTR_SKIP);
+    include($__PATH);
+}
+
+function p($str, $flags = -1, $enc = 'UTF-8', $denc = true) {
+    $flags = ($flags < 0 ? ENT_QUOTES : $flags);
+    echo htmlentities($str, $flags, $enc, $denc);
+}
