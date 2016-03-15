@@ -17,11 +17,12 @@ function route($verbs, $paths, $funcs) {
     if (!is_array($paths)) $paths = [$paths];
     if (!is_array($funcs)) $funcs = [$funcs];
 
-    $split_optional_paths = function($path) {
+    $context = &context();
+
+    $split_optional_paths = function($path) use(&$split_optional_paths) {
         $start = strpos($path, '(');
         if ($start === false) return [$path];
 
-        $result = [];
         $depth = 0;
 
         for ($i = $start; $i < strlen($path); $i++) {
@@ -31,27 +32,20 @@ function route($verbs, $paths, $funcs) {
             if ($depth == 0) break;
         }
 
-        $result[] = substr($path, 0, $start);
-        $result[] = $result[0]
-            . substr($path, $start + 1, $i - 1 - $start)
-            . substr($path, $i + 1);
-            
-        return $result;
-    };
+        $left = substr($path, 0, $start);
+        $middle = substr($path, $start + 1, $i - 1 - $start);
+        $right = substr($path, $i + 1);
 
-    $route_inner = function($verb, $path, $funcs) use($split_optional_paths) {
-        if (strpos($path, '(') === false) {
-            $context = &context();
-            $context[] = [$verb, $path, $funcs];
-        } else {
-            $paths = $split_optional_paths($path);
-            route($verb, $paths, $funcs);
-        }
+        return array_merge(
+            $split_optional_paths($left . $right),
+            $split_optional_paths($left . $middle . $right)
+        );
     };
 
     foreach ($verbs as $verb) {
-        foreach ($paths as $path) {
-            $route_inner($verb, $path, $funcs);
+        foreach ($paths as $op) {
+            foreach ($split_optional_paths($op) as $path)
+                $context[] = [$verb, $path, $funcs];
         }
     }
 }
@@ -91,8 +85,7 @@ function match($verb, $path, $route = null) {
             $segment = $path_segments[$i];
 
             if ($psegment[0] !== ':') {
-                if ($psegment !== $segment)
-                    break;
+                if ($psegment !== $segment) break;
             } else {
                 $name = substr($psegment, 1);
                 $regex = '/^[^\/]+$/';
@@ -115,9 +108,7 @@ function match($verb, $path, $route = null) {
 
     if ($match_verb($route[0], $verb)) {
         $args = $match_path($route[1], $path);
-
-        if ($args !== null)
-            return [$route, $args];
+        if ($args !== null) return [$route, $args];
     }
 
     return null;
