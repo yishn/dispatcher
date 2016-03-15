@@ -51,10 +51,8 @@ function match($verb, $path, $route = null) {
             return preg_split('~(?<!\\\)' . preg_quote($delimiter, '~') . '~', $string);
         };
 
-        $pattern = trim($pattern, '/');
-        $path = trim($path, '/');
-        $pattern_segments = $escape_explode('/', $pattern);
-        $path_segments = explode('/', $path);
+        $pattern_segments = $escape_explode('/', trim($pattern, '/'));
+        $path_segments = explode('/', trim($path, '/'));
         $args = [];
 
         if (count($pattern_segments) !== count($path_segments)) return null;
@@ -89,9 +87,8 @@ function match($verb, $path, $route = null) {
     if ($match_verb($route[0], $verb)) {
         $args = $match_path($route[1], $path);
 
-        if ($args !== null) {
+        if ($args !== null)
             return [$route, $args];
-        }
     }
 
     return null;
@@ -99,13 +96,11 @@ function match($verb, $path, $route = null) {
 
 function dispatch() {
     $verb = $_SERVER['REQUEST_METHOD'];
-    $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    $path = rawurldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 
     $match = match($verb, $path);
-
     if ($match === null) return;
 
     list($route, $args) = $match;
-
-    foreach ($route[2] as $f) { $f($args); }
+    foreach ($route[2] as $f) $f($args);
 }
