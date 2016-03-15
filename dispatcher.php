@@ -99,7 +99,6 @@ function match($verb, $path, $route = null) {
                 if (!preg_match($regex, $segment)) break;
                 $args[$name] = $segment;
             }
-
         }
 
         if ($i === count($path_segments)) return $args;
