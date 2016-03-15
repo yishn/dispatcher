@@ -58,24 +58,24 @@ function match($verb, $path, $route = null) {
         if (count($pattern_segments) !== count($path_segments)) return null;
 
         for ($i = 0; $i < count($path_segments); $i++) {
-            $pattern_segment = $pattern_segments[$i];
-            $path_segment = $path_segments[$i];
+            $psegment = $pattern_segments[$i];
+            $segment = $path_segments[$i];
 
-            if ($pattern_segment[0] !== ':') {
-                if ($pattern_segment !== $path_segment)
+            if ($psegment[0] !== ':') {
+                if ($psegment !== $segment)
                     break;
             } else {
-                $name = substr($pattern_segment, 1);
+                $name = substr($psegment, 1);
                 $regex = '/^[^\/]+$/';
-                $index = strpos($pattern_segment, '@');
+                $index = strpos($psegment, '@');
 
                 if ($index !== false) {
-                    $name = substr($pattern_segment, 1, $index - 1);
-                    $regex = '/^' . substr($pattern_segment, $index + 1) . '$/';
+                    $name = substr($psegment, 1, $index - 1);
+                    $regex = '/^' . substr($psegment, $index + 1) . '$/';
                 }
 
-                if (!preg_match($regex, $path_segment)) break;
-                $args[$name] = $path_segment;
+                if (!preg_match($regex, $segment)) break;
+                $args[$name] = $segment;
             }
 
         }
