@@ -1,7 +1,9 @@
 <?php
 
 /**
- * yishn/dispatcher
+ * dispatcher
+ * https://github.com/yishn/dispatcher
+ *
  * MIT License
  */
 
