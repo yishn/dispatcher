@@ -1,11 +1,7 @@
 <?php
 
-/**
- * dispatcher
- * https://github.com/yishn/dispatcher
- *
- * MIT License
- */
+# dispatcher - https://github.com/yishn/dispatcher
+# MIT License
 
 function &context() {
     static $context = [];
