@@ -17,9 +17,36 @@ function route($verbs, $paths, $funcs) {
     if (!is_array($paths)) $paths = [$paths];
     if (!is_array($funcs)) $funcs = [$funcs];
 
-    $route_inner = function($verb, $path, $funcs) {
-        $context = &context();
-        $context[] = [$verb, $path, $funcs];
+    $split_optional_paths = function($path) {
+        $start = strpos($path, '(');
+        if ($start === false) return [$path];
+
+        $result = [];
+        $depth = 0;
+
+        for ($i = $start; $i < strlen($path); $i++) {
+            if ($path[$i] == '(') $depth++;
+            else if ($path[$i] == ')') $depth--;
+            else continue;
+            if ($depth == 0) break;
+        }
+
+        $result[] = substr($path, 0, $start);
+        $result[] = $result[0]
+            . substr($path, $start + 1, $i - 1 - $start)
+            . substr($path, $i + 1);
+            
+        return $result;
+    };
+
+    $route_inner = function($verb, $path, $funcs) use($split_optional_paths) {
+        if (strpos($path, '(') === false) {
+            $context = &context();
+            $context[] = [$verb, $path, $funcs];
+        } else {
+            $paths = $split_optional_paths($path);
+            route($verb, $paths, $funcs);
+        }
     };
 
     foreach ($verbs as $verb) {
@@ -99,6 +126,13 @@ function match($verb, $path, $route = null) {
 function dispatch() {
     $verb = $_SERVER['REQUEST_METHOD'];
     $path = rawurldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
+
+    if ($verb == 'POST') {
+        if (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']))
+            $verb = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'];
+        else
+            $verb = isset($_POST['_method']) ? $_POST['_method'] : $verb;
+    }
 
     $match = match($verb, $path);
     if ($match === null) return;
