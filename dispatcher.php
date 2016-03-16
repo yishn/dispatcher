@@ -133,7 +133,7 @@ function redirect($location, $code = 302) {
     exit();
 }
 
-function render($__PATH, $__VARS) {
+function render($__PATH, $__VARS = []) {
     extract($__VARS, EXTR_SKIP);
     include($__PATH);
 }
